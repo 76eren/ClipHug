@@ -33,4 +33,4 @@ build/
 .vscode/
 
 application.properties
-requests.http
+/src/main/java/reqeusts.http
