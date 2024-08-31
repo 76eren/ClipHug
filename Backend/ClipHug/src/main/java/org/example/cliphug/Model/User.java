@@ -12,6 +12,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
@@ -49,11 +50,12 @@ public class User implements UserDetails {
     @JsonProperty
     private String lastName;
 
-
-
     @Column(name = "role")
     @JsonProperty
     private Role role;
+
+    @OneToMany
+    private List<Video> videos;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

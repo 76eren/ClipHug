@@ -64,6 +64,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/user/register").permitAll()
                         .requestMatchers("/api/v1/auth/authenticated").permitAll()
                         .requestMatchers("/api/v1/auth/login").permitAll()
+                        .requestMatchers("/api/v1/video/create").authenticated()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

@@ -56,6 +56,8 @@ public class AdminSeeder {
                 .username(username)
                 .role(Role.ADMIN)
                 .password(passwordEncoder.encode(password))
+                .firstName(firstName)
+                .lastName(lastName)
                 .build();
     }
 }
