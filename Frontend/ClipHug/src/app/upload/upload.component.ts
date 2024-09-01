@@ -1,5 +1,8 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import {VideoService} from "../shared/service/requests/video.service";
+import {HttpErrorResponse} from "@angular/common/http";
+import {ToastrService} from "ngx-toastr";
 
 @Component({
   selector: 'app-upload',
@@ -12,6 +15,10 @@ export class UploadComponent {
   fileName: string = "";
   thumbnail: string = "";
   file?: File;
+
+  constructor(private videoService: VideoService, private toastr: ToastrService) {
+
+  }
 
   onDrop($event: DragEvent) {
     $event.preventDefault();
@@ -73,10 +80,12 @@ export class UploadComponent {
 
   onSubmit() {
     if (this.file) {
-      console.log('Submitting file:', this.file);
-
-
-
+      this.videoService.uploadVideo(this.file).subscribe((response) => {
+        this.toastr.success('Video uploaded successfully');
+      },
+      (error: HttpErrorResponse) => {
+        this.toastr.error('Failed to upload video');
+      });
     }
   }
 }
