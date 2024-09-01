@@ -27,6 +27,7 @@ export class DashboardComponent {
       .getAllVideosFromSelf()
       .subscribe(response => {
         this.videos = response.payload;
+        console.log(this.videos)
       })
   }
 
