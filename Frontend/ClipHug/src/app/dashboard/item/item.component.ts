@@ -1,6 +1,7 @@
 import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {VideoModel} from "../../shared/models/Login/video.model";
+import {VideoService} from "../../shared/service/requests/video.service";
 
 @Component({
   selector: 'app-item',
@@ -11,5 +12,18 @@ import {VideoModel} from "../../shared/models/Login/video.model";
 })
 export class ItemComponent {
   @Input() video?: VideoModel;
+
+  constructor(private videoService: VideoService) {
+  }
+
+  getVideoUrl(video: VideoModel) {
+    return this.videoService.getVideoUrl(this.video!);
+  }
+
+  getThumbnailUrl(video: VideoModel) {
+    return this.videoService.getThumbnailUrl(this.video!);
+
+  }
+
 
 }

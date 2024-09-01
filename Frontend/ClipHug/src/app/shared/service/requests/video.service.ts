@@ -33,4 +33,12 @@ export class VideoService {
   }
 
 
+  getVideoUrl(video: VideoModel) {
+    return ApiService.API_URL + "/video/" + video.videoId + "/" + video.fileName;
+  }
+
+  getThumbnailUrl(video: VideoModel) {
+    console.log( ApiService.API_URL + "/video/frame/" + video.videoId);
+    return ApiService.API_URL + "/video/frame/" + video.videoId;
+  }
 }

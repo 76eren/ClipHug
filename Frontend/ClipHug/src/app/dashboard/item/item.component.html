@@ -1,4 +1,4 @@
 <div>
-  <img class="h-auto max-w-full rounded-lg" src="http://localhost:8080/api/v1/video/frame/{{video?.videoId}}" alt="">
+  <img class="h-auto max-w-full rounded-lg" src="{{getThumbnailUrl(video!)}}" alt="">
   <p class="italics">{{video?.fileName}}</p>
 </div>
