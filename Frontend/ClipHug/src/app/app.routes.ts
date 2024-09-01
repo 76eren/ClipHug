@@ -5,6 +5,7 @@ import {LoginComponent} from "./login/login.component";
 import {RegisterComponent} from "./register/register.component";
 import {LoginGuard} from "./shared/guard/login.guard";
 import {AuthGuard} from "./shared/guard/auth.guard";
+import {UploadComponent} from "./upload/upload.component";
 
 export const routes: Routes = [
   {
@@ -25,6 +26,10 @@ export const routes: Routes = [
       {
         path: 'dashboard',
         component: DashboardComponent,
+      },
+      {
+        path: 'upload',
+        component: UploadComponent
       }
     ],
   },

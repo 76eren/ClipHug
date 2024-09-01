@@ -1,0 +1,32 @@
+<div class="min-h-screen flex flex-col items-center justify-center bg-gray-100 px-4">
+  <h1 class="text-3xl font-bold mb-6 text-gray-800 text-center">Drag-and-drop video uploader</h1>
+
+  <div
+    class="drop-area w-full max-w-lg border-4 border-dashed border-gray-400 rounded-lg flex items-center justify-center text-gray-500
+    h-80 hover:border-gray-500 hover:bg-gray-50 transition-colors duration-300"
+    (drop)="onDrop($event)"
+    (dragover)="onDragOver($event)"
+    (dragleave)="onDragLeave($event)"
+  >
+    Drag here to preview
+  </div>
+
+  <input type="file" id="file-input" (change)="onFileSelected($event)" hidden accept="video/mp4">
+
+  <div id="preview-container" class="mt-8 w-full max-w-lg">
+    <ng-container *ngIf="file">
+      <div class="border p-2 rounded">
+        <img [src]="thumbnail" alt="Preview" class="w-full h-auto object-cover" />
+        <p class="mt-2 text-sm">{{ file.name }}</p>
+      </div>
+    </ng-container>
+  </div>
+
+  <button
+    class="mt-8 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+    (click)="onSubmit()"
+    [disabled]="!file"
+  >
+    Submit
+  </button>
+</div>
