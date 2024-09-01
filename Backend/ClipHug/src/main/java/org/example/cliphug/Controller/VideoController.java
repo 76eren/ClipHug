@@ -10,6 +10,7 @@ import org.example.cliphug.Mapper.VideoMapper;
 import org.example.cliphug.Model.ApiResponse;
 import org.example.cliphug.Model.User;
 import org.example.cliphug.Model.Video;
+import org.example.cliphug.Model.VideoVisibility;
 import org.example.cliphug.Service.VideoService;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -53,7 +54,6 @@ public class VideoController {
     }
 
 
-    // TODO: Add visibility options
     @GetMapping()
     public ApiResponse<List<VideoResponseDTO>> getAllVideosFromSelf() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -66,6 +66,10 @@ public class VideoController {
 
         List<VideoResponseDTO> videosResponseDTO = new ArrayList<>();
         for (Video video : user.get().getVideos()) {
+            if (video.getVisibility() == VideoVisibility.DELETED) {
+                continue;
+            }
+
             videosResponseDTO.add(videoMapper.fromEntity(video));
         }
 
@@ -76,14 +80,41 @@ public class VideoController {
     // TODO: Add visibility options
     @GetMapping(value = "/frame/{id}")
     public ResponseEntity<byte[]> getFirstFrameOfVideo(@PathVariable UUID id) {
-        byte[] frame = this.videoService.getFirstFrameOfVideo(id);
+        Video video = this.videoDao.getVideoById(id);
+        if (video.getVisibility() == VideoVisibility.DELETED) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
+
+        if (video.getVisibility() == VideoVisibility.PRIVATE) {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            UUID userId = UUID.fromString(authentication.getPrincipal().toString());
+            if (!video.getAuthor().getId().equals(userId)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
+            }
+        }
+
+        byte[] frame = this.videoService.getFirstFrameOfVideo(video);
         return ResponseEntity.ok().contentType(MediaType.IMAGE_JPEG).body(frame);
     }
 
     @GetMapping(value = "/{id}")
     public ResponseEntity<Resource> getVideoById(@PathVariable UUID id) {
+        Video video = this.videoDao.getVideoById(id);
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UUID userId = UUID.fromString(authentication.getPrincipal().toString());
+        if (video.getVisibility() == VideoVisibility.PRIVATE && !video.getAuthor().getId().equals(userId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
+        }
+
+        if (video.getVisibility() == VideoVisibility.DELETED) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
+
+
         return this.videoService.getVideoById(id);
     }
+
 
 
 }

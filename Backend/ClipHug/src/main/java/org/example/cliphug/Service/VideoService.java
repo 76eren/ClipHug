@@ -6,6 +6,7 @@ import org.example.cliphug.Dao.UserDao;
 import org.example.cliphug.Dao.VideoDao;
 import org.example.cliphug.Model.User;
 import org.example.cliphug.Model.Video;
+import org.example.cliphug.Model.VideoVisibility;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
@@ -76,6 +77,7 @@ public class VideoService {
         return Video.builder()
                 .fileName(fileName)
                 .size(size)
+                .visibility(VideoVisibility.PUBLIC) // By default, the videos are public
                 .uploadData(currentDate)
                 .build();
     }
@@ -100,10 +102,9 @@ public class VideoService {
         }
     }
 
-    public byte[] getFirstFrameOfVideo(UUID id) {
-        Video video = this.videoDao.getVideoById(id);
+    public byte[] getFirstFrameOfVideo(Video video) {
 
-        try (FFmpegFrameGrabber frameGrabber = new FFmpegFrameGrabber("videos/" + id + "/" + video.getFileName())) {
+        try (FFmpegFrameGrabber frameGrabber = new FFmpegFrameGrabber("videos/" + video.getId() + "/" + video.getFileName())) {
             frameGrabber.start();
 
             // Grab the first frame
