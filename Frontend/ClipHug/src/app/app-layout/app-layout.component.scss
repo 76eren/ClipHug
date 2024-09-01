@@ -1,0 +1,42 @@
+.app-layout {
+  display: flex;
+  flex-direction: row;
+  height: 100%;
+}
+
+.app-layout__main {
+  width: 100%;
+  min-height: 100vh;
+  background: white;
+  position: relative;
+  overflow: hidden;
+  border-top-left-radius: 16px;
+  border-bottom-left-radius: 16px;
+}
+
+.app-layout__content {
+  flex: 1;
+  position: relative;
+  padding: 0 160px;
+  overflow-y: auto;
+}
+
+@media only screen and (max-width: 720px) {
+  .app-layout {
+    flex-direction: column-reverse;
+
+    .app-layout__content {
+      inset: 0;
+      position: relative;
+      overflow: auto;
+      width: 100vw;
+      overflow: hidden;
+      padding: 0px;
+      padding-bottom: 100px;
+    }
+
+    .app-layout__main {
+      border-radius: 0;
+    }
+  }
+}
