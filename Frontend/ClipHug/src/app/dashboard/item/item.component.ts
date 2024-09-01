@@ -25,5 +25,7 @@ export class ItemComponent {
 
   }
 
-
+  onVideoClick() {
+    window.open(this.getVideoUrl(this.video!));
+  }
 }

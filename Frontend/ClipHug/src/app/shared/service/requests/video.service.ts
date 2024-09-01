@@ -34,7 +34,7 @@ export class VideoService {
 
 
   getVideoUrl(video: VideoModel) {
-    return ApiService.API_URL + "/video/" + video.videoId + "/" + video.fileName;
+    return ApiService.API_URL + "/video/" + video.videoId;
   }
 
   getThumbnailUrl(video: VideoModel) {
