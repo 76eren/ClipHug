@@ -3,19 +3,24 @@ import {DashboardComponent} from "./dashboard/dashboard.component";
 import {AppLayoutComponent} from "./app-layout/app-layout.component";
 import {LoginComponent} from "./login/login.component";
 import {RegisterComponent} from "./register/register.component";
+import {LoginGuard} from "./shared/guard/login.guard";
+import {AuthGuard} from "./shared/guard/auth.guard";
 
 export const routes: Routes = [
   {
     path: 'login',
     component: LoginComponent,
+    canActivate: [LoginGuard],
   },
   {
     path: 'register',
     component: RegisterComponent,
+    canActivate: [LoginGuard],
   },
   {
     path: '',
     component: AppLayoutComponent,
+    canActivate: [AuthGuard],
     children: [
       {
         path: 'dashboard',
