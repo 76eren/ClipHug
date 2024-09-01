@@ -8,33 +8,33 @@
       <h2 class="text-3xl font-bold text-white">Register account</h2>
       <form class="space-y-4">
         <div>
-          <label for="username" class="block text-sm font-medium text-white">Username</label>
-          <input type="text" id="username" class="w-full px-4 py-2 mt-2 bg-gray-700 text-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500">
+          <label for="username" class="block text-sm font-medium text-white">Username*</label>
+          <input name="username" [(ngModel)]="username" type="text" id="username" class="w-full px-4 py-2 mt-2 bg-gray-700 text-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500">
+        </div>
+        <div>
+          <label for="password" class="block text-sm font-medium text-white">Password*</label>
+          <input [(ngModel)]="password" name="password" type="password" id="password" class="w-full px-4 py-2 mt-2 bg-gray-700 text-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500">
         </div>
         <div>
           <label for="email" class="block text-sm font-medium text-white">Email</label>
-          <input type="text" id="email" class="w-full px-4 py-2 mt-2 bg-gray-700 text-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500">
-        </div>
-        <div>
-          <label for="password" class="block text-sm font-medium text-white">Password</label>
-          <input type="password" id="password" class="w-full px-4 py-2 mt-2 bg-gray-700 text-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500">
+          <input [(ngModel)]="email" type="text" name="email" id="email" class="w-full px-4 py-2 mt-2 bg-gray-700 text-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500">
         </div>
         <div>
           <label for="firstName" class="block text-sm font-medium text-white">First name</label>
-          <input type="text" id="firstName" class="w-full px-4 py-2 mt-2 bg-gray-700 text-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500">
+          <input [(ngModel)]="firstName" name="firstName" type="text" id="firstName" class="w-full px-4 py-2 mt-2 bg-gray-700 text-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500">
         </div>
         <div>
           <label for="lastName" class="block text-sm font-medium text-white">Last name</label>
-          <input type="text" id="lastName" class="w-full px-4 py-2 mt-2 bg-gray-700 text-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500">
+          <input [(ngModel)]="lastName" name="lastName" type="text" id="lastName" class="w-full px-4 py-2 mt-2 bg-gray-700 text-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500">
         </div>
 
         <! –– Remove this if you don't want a pin ––>
         <div>
-          <label for="pin" class="block text-sm font-medium text-white">Register pin</label>
-          <input type="password" id="pin" class="w-full px-4 py-2 mt-2 bg-gray-700 text-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500">
+          <label for="pin" class="block text-sm font-medium text-white">Register pin*</label>
+          <input [(ngModel)]="pin" type="password" name="pin" id="pin" class="w-full px-4 py-2 mt-2 bg-gray-700 text-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500">
         </div>
 
-        <button type="submit" class="w-full py-2 text-white bg-yellow-500 rounded-md hover:bg-yellow-600">Create an account</button>
+        <button (click)="submitRegister()" type="submit" class="w-full py-2 text-white bg-yellow-500 rounded-md hover:bg-yellow-600">Create an account</button>
       </form>
     </div>
   </div>

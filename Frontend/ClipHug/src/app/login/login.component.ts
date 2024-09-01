@@ -26,8 +26,6 @@ export class LoginComponent {
       return;
     }
 
-    console.log("Username is: " + this.username + " Password is: " + this.password)
-
     this.loginService.login(this.username, this.password);
   }
 
