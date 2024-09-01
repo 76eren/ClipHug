@@ -6,6 +6,7 @@ import {RegisterComponent} from "./register/register.component";
 import {LoginGuard} from "./shared/guard/login.guard";
 import {AuthGuard} from "./shared/guard/auth.guard";
 import {UploadComponent} from "./upload/upload.component";
+import {ManagerComponent} from "./manager/manager.component";
 
 export const routes: Routes = [
   {
@@ -30,6 +31,10 @@ export const routes: Routes = [
       {
         path: 'upload',
         component: UploadComponent
+      },
+      {
+        path: 'manager',
+        component: ManagerComponent
       }
     ],
   },

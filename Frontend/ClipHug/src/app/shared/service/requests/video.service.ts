@@ -12,6 +12,16 @@ export class VideoService {
   constructor(private apiService: ApiService) {
   }
 
+  getVideoById(videoId: string): Observable<ApiResponse<VideoModel>> {
+    return this.apiService
+      .get<ApiResponse<VideoModel>>(`/video/data/${videoId}`)
+      .pipe(
+        catchError((error) => {
+          console.error('Error fetching video: ', error);
+          throw error;
+        })
+      );
+  }
 
   uploadVideo(file: File) {
     const formData = new FormData();

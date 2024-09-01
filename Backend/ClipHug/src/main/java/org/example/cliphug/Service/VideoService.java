@@ -85,6 +85,9 @@ public class VideoService {
     public ResponseEntity<Resource> getVideoById(UUID id) {
         try {
             Video video = this.videoDao.getVideoById(id);
+            if (video == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            }
 
             Path videoPath = Paths.get("videos/"+video.getId()).resolve(video.getFileName()).normalize();
             Resource resource = new UrlResource(videoPath.toUri());

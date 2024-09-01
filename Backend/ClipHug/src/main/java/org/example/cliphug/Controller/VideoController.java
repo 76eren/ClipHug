@@ -11,6 +11,7 @@ import org.example.cliphug.Model.ApiResponse;
 import org.example.cliphug.Model.User;
 import org.example.cliphug.Model.Video;
 import org.example.cliphug.Model.VideoVisibility;
+import org.example.cliphug.Service.AuthenticationService;
 import org.example.cliphug.Service.VideoService;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -38,6 +39,7 @@ public class VideoController {
     private final VideoService videoService;
     private final UserDao userDao;
     private final VideoMapper videoMapper;
+    private final AuthenticationService authenticationService;
 
     @PostMapping(value = "/create")
     public ApiResponse<?> createVideo(@ModelAttribute VideoUploadDTO videoUploadDTO) throws IOException {
@@ -81,14 +83,16 @@ public class VideoController {
     @GetMapping(value = "/frame/{id}")
     public ResponseEntity<byte[]> getFirstFrameOfVideo(@PathVariable UUID id) {
         Video video = this.videoDao.getVideoById(id);
+        if (video == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
+
         if (video.getVisibility() == VideoVisibility.DELETED) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
 
         if (video.getVisibility() == VideoVisibility.PRIVATE) {
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            UUID userId = UUID.fromString(authentication.getPrincipal().toString());
-            if (!video.getAuthor().getId().equals(userId)) {
+            if (!this.authenticationService.checkIfUserIsRequestingTheirOwnData(video.getAuthor().getId())) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
             }
         }
@@ -100,10 +104,12 @@ public class VideoController {
     @GetMapping(value = "/{id}")
     public ResponseEntity<Resource> getVideoById(@PathVariable UUID id) {
         Video video = this.videoDao.getVideoById(id);
+        if (video == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
 
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        UUID userId = UUID.fromString(authentication.getPrincipal().toString());
-        if (video.getVisibility() == VideoVisibility.PRIVATE && !video.getAuthor().getId().equals(userId)) {
+
+        if (video.getVisibility() == VideoVisibility.PRIVATE && this.authenticationService.checkIfUserIsRequestingTheirOwnData(video.getAuthor().getId())) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
         }
 
@@ -113,6 +119,24 @@ public class VideoController {
 
 
         return this.videoService.getVideoById(id);
+    }
+
+    @GetMapping(value = "/data/{id}")
+    public ApiResponse<VideoResponseDTO> getVideoDataById(@PathVariable UUID id) {
+        Video video = this.videoDao.getVideoById(id);
+        if (video == null) {
+            return new ApiResponse<>("Video not found", HttpStatus.NOT_FOUND);
+        }
+
+        if (video.getVisibility() == VideoVisibility.PRIVATE && this.authenticationService.checkIfUserIsRequestingTheirOwnData(video.getAuthor().getId())) {
+            return new ApiResponse<>("Video not found", HttpStatus.NOT_FOUND);
+        }
+
+        if (video.getVisibility() == VideoVisibility.DELETED) {
+            return new ApiResponse<>("Video not found", HttpStatus.NOT_FOUND);
+        }
+
+        return new ApiResponse<>(videoMapper.fromEntity(video), HttpStatus.OK);
     }
 
 
