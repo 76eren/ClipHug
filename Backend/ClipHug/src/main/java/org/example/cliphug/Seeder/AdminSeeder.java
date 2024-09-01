@@ -28,6 +28,9 @@ public class AdminSeeder {
     @Value("${admin.lastName}")
     private String lastName;
 
+    @Value("${admin.email}")
+    private String email;
+
 
     public void seed() {
         // We check if an admin already exists
@@ -45,12 +48,12 @@ public class AdminSeeder {
 
     public ArrayList<User> getUsers() {
         ArrayList<User> users = new ArrayList<>();
-        users.add(createAdmin(username, password, firstName, lastName));
+        users.add(createAdmin(username, password, firstName, lastName, email));
         return users;
     }
 
 
-    public User createAdmin(String username, String password, String firstName, String lastName) {
+    public User createAdmin(String username, String password, String firstName, String lastName, String email) {
         return User
                 .builder()
                 .username(username)
@@ -58,6 +61,7 @@ public class AdminSeeder {
                 .password(passwordEncoder.encode(password))
                 .firstName(firstName)
                 .lastName(lastName)
+                .email(email)
                 .build();
     }
 }

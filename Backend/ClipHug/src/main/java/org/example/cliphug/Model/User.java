@@ -34,23 +34,27 @@ public class User implements UserDetails {
     @JsonProperty
     private UUID id;
 
-    @Column(name = "email")
+    @Column(name = "username", nullable = false)
     @JsonProperty
-    private String username; // The username will be represented by an email, I will be using the firstname and lastname to address the user
+    private String username;
 
-    @Column(name = "password")
+    @Column(name = "email", nullable = true)
+    @JsonProperty
+    private String email;
+
+    @Column(name = "password", nullable = false)
     @JsonIgnore
     private String password;
 
-    @Column(name = "firstname")
+    @Column(name = "firstname", nullable = true)
     @JsonProperty
     private String firstName;
 
-    @Column(name = "lastname")
+    @Column(name = "lastname", nullable = true)
     @JsonProperty
     private String lastName;
 
-    @Column(name = "role")
+    @Column(name = "role", nullable = false)
     @JsonProperty
     private Role role;
 

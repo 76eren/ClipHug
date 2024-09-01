@@ -44,6 +44,7 @@ public class Video {
     private User author;
 
 
+    // TODO: Add visibility options. this is something I want to implement when everything is done, I want to implement a feature eventually where you can check other people's clips
 
 
 }
