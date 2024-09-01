@@ -6,6 +6,11 @@ import org.example.cliphug.Dao.UserDao;
 import org.example.cliphug.Dao.VideoDao;
 import org.example.cliphug.Model.User;
 import org.example.cliphug.Model.Video;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -69,4 +74,25 @@ public class VideoService {
                 .uploadData(currentDate)
                 .build();
     }
+
+    public ResponseEntity<Resource> getVideoById(UUID id) {
+        try {
+            Video video = this.videoDao.getVideoById(id);
+
+            Path videoPath = Paths.get("videos/"+video.getId()).resolve(video.getFileName()).normalize();
+            Resource resource = new UrlResource(videoPath.toUri());
+
+            if (resource.exists() && resource.isReadable()) {
+                return ResponseEntity.ok()
+                        .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + resource.getFilename() + "\"")
+                        .header(HttpHeaders.CONTENT_TYPE, "video/mp4")
+                        .body(resource);
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
 }
+
