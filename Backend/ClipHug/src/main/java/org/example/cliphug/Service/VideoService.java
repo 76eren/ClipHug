@@ -20,6 +20,11 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.*;
+import org.bytedeco.javacv.*;
+import org.bytedeco.javacv.Frame;
+import java.io.ByteArrayOutputStream;
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 
 @Service
 @RequiredArgsConstructor
@@ -93,6 +98,34 @@ public class VideoService {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
+    }
+
+    public byte[] getFirstFrameOfVideo(UUID id) {
+        Video video = this.videoDao.getVideoById(id);
+
+        try (FFmpegFrameGrabber frameGrabber = new FFmpegFrameGrabber("videos/" + id + "/" + video.getFileName())) {
+            frameGrabber.start();
+
+            // Grab the first frame
+            Frame frame = frameGrabber.grabImage();
+
+            if (frame != null) {
+                Java2DFrameConverter converter = new Java2DFrameConverter();
+                BufferedImage bufferedImage = converter.convert(frame);
+
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                ImageIO.write(bufferedImage, "jpg", baos);
+                baos.flush();
+                byte[] imageInByte = baos.toByteArray();
+                baos.close();
+
+                return imageInByte;
+            }
+            frameGrabber.stop();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }
 

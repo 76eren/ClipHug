@@ -1,6 +1,7 @@
 package org.example.cliphug.Controller;
 
 import lombok.RequiredArgsConstructor;
+import org.bytedeco.javacv.FrameGrabber;
 import org.example.cliphug.Dao.UserDao;
 import org.example.cliphug.Dao.VideoDao;
 import org.example.cliphug.Dto.Video.VideoResponseDTO;
@@ -14,6 +15,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -50,6 +52,8 @@ public class VideoController {
         return new ApiResponse<>("Video created", HttpStatus.OK);
     }
 
+
+    // TODO: Add visibility options
     @GetMapping()
     public ApiResponse<List<VideoResponseDTO>> getAllVideosFromSelf() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -66,6 +70,14 @@ public class VideoController {
         }
 
         return new ApiResponse<>(videosResponseDTO, HttpStatus.OK);
+    }
+
+    // This endpoint will be used to generate thumbnails for the various videos, this way we won't have to request all videos for a thumbnail via the frontend
+    // TODO: Add visibility options
+    @GetMapping(value = "/frame/{id}")
+    public ResponseEntity<byte[]> getFirstFrameOfVideo(@PathVariable UUID id) {
+        byte[] frame = this.videoService.getFirstFrameOfVideo(id);
+        return ResponseEntity.ok().contentType(MediaType.IMAGE_JPEG).body(frame);
     }
 
     @GetMapping(value = "/{id}")

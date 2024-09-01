@@ -40,6 +40,9 @@ dependencies {
     implementation("org.apache.tomcat.embed:tomcat-embed-core:10.1.20")
     implementation("org.simplejavamail:simple-java-mail:8.10.1")
     implementation("org.hibernate:hibernate-validator:8.0.1.Final")
+
+    implementation("org.bytedeco:javacv:1.5.7")
+    implementation("org.bytedeco:javacv-platform:1.5.7")
 }
 
 tasks.withType<Test> {
