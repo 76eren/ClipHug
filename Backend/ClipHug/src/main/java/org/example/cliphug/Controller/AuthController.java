@@ -42,7 +42,6 @@ public class AuthController {
         return new ApiResponse<>("Login succes", HttpStatus.OK);
     }
 
-    // Voor testing doeleinden
     @PostMapping(value = "/register")
     public ApiResponse<AuthResponseDTO> register(@RequestBody UserCreateDTO userCreateDTO) {
         // I don't want anybody being able to register for an account, so I have implemented a pin
