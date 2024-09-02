@@ -45,6 +45,11 @@ export class UploadComponent {
 
   handleFile(files: FileList | null) {
     if (files && files.length > 0) {
+      if (files[0].size > 150000000) {
+        this.toastr.error('You can only upload files up to 150MB in size.');
+        return;
+      }
+
       this.file = files[0];
       this.fileName = this.file.name;
 
