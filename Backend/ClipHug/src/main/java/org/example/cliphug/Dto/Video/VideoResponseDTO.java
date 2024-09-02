@@ -19,4 +19,5 @@ public class VideoResponseDTO {
     private String fileName;
     private UUID videoId;
     private VideoVisibility visibility;
+    private String authorId;
 }

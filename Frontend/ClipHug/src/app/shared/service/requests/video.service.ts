@@ -51,4 +51,9 @@ export class VideoService {
     console.log( ApiService.API_URL + "/video/frame/" + video.videoId);
     return ApiService.API_URL + "/video/frame/" + video.videoId;
   }
+
+  setVideoVisibility(videoId: string, visibility: string) {
+    return this.apiService.patch(`/video/${videoId}/${visibility}`, { body: {visibility: visibility}});
+  }
+
 }

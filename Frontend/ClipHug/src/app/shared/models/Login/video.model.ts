@@ -4,7 +4,8 @@ export class VideoModel {
     public uploadDate: string,
     public fileName: string,
     public size: number,
-    public visibility: string
+    public visibility: string,
+    public authorId: string
   ) {
   }
 }

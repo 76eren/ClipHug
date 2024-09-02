@@ -108,8 +108,7 @@ public class VideoController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
 
-
-        if (video.getVisibility() == VideoVisibility.PRIVATE && this.authenticationService.checkIfUserIsRequestingTheirOwnData(video.getAuthor().getId())) {
+        if (video.getVisibility() == VideoVisibility.PRIVATE && !this.authenticationService.checkIfUserIsRequestingTheirOwnData(video.getAuthor().getId())) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
         }
 
@@ -128,7 +127,7 @@ public class VideoController {
             return new ApiResponse<>("Video not found", HttpStatus.NOT_FOUND);
         }
 
-        if (video.getVisibility() == VideoVisibility.PRIVATE && this.authenticationService.checkIfUserIsRequestingTheirOwnData(video.getAuthor().getId())) {
+        if (video.getVisibility() == VideoVisibility.PRIVATE && !this.authenticationService.checkIfUserIsRequestingTheirOwnData(video.getAuthor().getId())) {
             return new ApiResponse<>("Video not found", HttpStatus.NOT_FOUND);
         }
 
@@ -139,6 +138,33 @@ public class VideoController {
         return new ApiResponse<>(videoMapper.fromEntity(video), HttpStatus.OK);
     }
 
+    @PatchMapping(value = "/{id}/{type}")
+    public ApiResponse<VideoResponseDTO> changeVideoVisibility(@PathVariable String id, @PathVariable String type) {
+        // We first check if our type can be converted to a VideoVisibility
+        VideoVisibility visibility = VideoVisibility.valueOf(type.toUpperCase());
+
+        Video video = this.videoDao.getVideoById(UUID.fromString(id));
+        if (video == null) {
+            return new ApiResponse<>("Video not found", HttpStatus.NOT_FOUND);
+        }
+
+        if (video.getVisibility() == VideoVisibility.DELETED) {
+            return new ApiResponse<>("Video not found", HttpStatus.NOT_FOUND);
+        }
+
+        // A user shouldn't be able to edit another user's video
+        if (!this.authenticationService.checkIfUserIsRequestingTheirOwnData(video.getAuthor().getId())) {
+            return new ApiResponse<>("Video not found", HttpStatus.NOT_FOUND);
+        }
+
+        // This isn't implemented yet as I want to delete the video and soft delete the data in the database
+        if (visibility == VideoVisibility.DELETED) {
+            return new ApiResponse<>("This feature is not implemented yet", HttpStatus.NOT_IMPLEMENTED);
+        }
+
+        video.setVisibility(visibility);
+        return new ApiResponse<>(videoMapper.fromEntity(videoDao.save(video)), HttpStatus.OK);
+    }
 
 
 }
