@@ -5,6 +5,7 @@ import {FormsModule} from "@angular/forms";
 import {VideoService} from "../shared/service/requests/video.service";
 import {VideoModel} from "../shared/models/Login/video.model";
 import {ItemComponent} from "./item/item.component";
+import {ToastrService} from "ngx-toastr";
 
 
 @Component({
@@ -21,7 +22,7 @@ export class DashboardComponent {
 
   videoUrlInputBar: string = "";
 
-  constructor(private videoService: VideoService) {
+  constructor(private videoService: VideoService, private toastr: ToastrService) {
   }
 
   ngOnInit() {
@@ -42,9 +43,14 @@ export class DashboardComponent {
     if (this.videoUrlInputBar.startsWith("@")) {
       this.videoService
         .getAllVideosFromUser(this.videoUrlInputBar)
-        .subscribe(response => {
-          this.videosFiltered = response.payload;
-        })
+        .subscribe({
+          next: (response) => {
+            this.videosFiltered = response.payload;
+          },
+          error: (err) => {
+            this.toastr.error("User not found");
+          }
+        });
 
       return;
     }
