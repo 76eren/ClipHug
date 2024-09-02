@@ -1,16 +1,10 @@
 package org.example.cliphug.Dto.Video;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import jakarta.persistence.Column;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import jakarta.persistence.ManyToOne;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.example.cliphug.Model.User;
-import org.hibernate.annotations.GenericGenerator;
+import org.example.cliphug.Model.VideoVisibility;
 
 import java.util.Date;
 import java.util.UUID;
@@ -24,4 +18,6 @@ public class VideoResponseDTO {
     private Date uploadData;
     private String fileName;
     private UUID videoId;
+    private VideoVisibility visibility;
+    private String authorId;
 }

@@ -1,0 +1,37 @@
+<div class="pt-28 container">
+
+  <div class="bg-white flex px-1 py-1 rounded-full border border-blue-500 overflow-hidden max-w-md md:max-w-2xl mx-auto font-[sans-serif]">
+    <input [(ngModel)]="videoUrl" type='email' placeholder='Search Something...' class="w-full outline-none bg-white pl-4 text-sm" />
+    <button type='button'
+            (click)="onButtonClick()"
+            class="bg-blue-600 hover:bg-blue-700 transition-all text-white text-sm rounded-full px-5 py-2.5">Search</button>
+  </div>
+
+  <div class="flex" *ngIf="!hidden">
+    <div id="preview-container" class="flex justify-center w-1/2">
+      <div class="border p-2 rounded">
+        <img [src]="thumbnail" alt="" class="w-full h-auto object-cover" />
+        <p class="mt-2 text-sm">{{ this.video?.fileName }} - Video is currently: {{videoVisibility}}</p>
+      </div>
+    </div>
+
+    <div class="nextToDataContainer w-1/2 flex-row items-center justify-center">
+      <button (click)="onPrivateClick()" class="justify-center items-center bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded m-2">
+        Set video visibility to: PRIVATE
+      </button>
+      <button (click)="onPublicClick()" class="justify-center items-center bg-blue-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded m-2">
+        Set video visibility to: PUBLIC
+      </button>
+      <button (click)="onUnlistedClick()" class="justify-center items-center bg-blue-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded m-2">
+        Set video visibility to: UNLISTED
+      </button>
+      <button (click)="onDeleteClick()" class="justify-center items-center bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded m-2">
+        Delete video
+      </button>
+    </div>
+  </div>
+
+
+
+</div>
+

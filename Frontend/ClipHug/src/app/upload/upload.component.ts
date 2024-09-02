@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import {VideoService} from "../shared/service/requests/video.service";
 import {HttpErrorResponse} from "@angular/common/http";
 import {ToastrService} from "ngx-toastr";
+import {FrameService} from "../shared/service/frame.service";
 
 @Component({
   selector: 'app-upload',
@@ -16,7 +17,7 @@ export class UploadComponent {
   thumbnail: string = "";
   file?: File;
 
-  constructor(private videoService: VideoService, private toastr: ToastrService) {
+  constructor(private videoService: VideoService, private toastr: ToastrService, private frameService: FrameService) {
 
   }
 
@@ -42,40 +43,23 @@ export class UploadComponent {
   handleFile(files: FileList | null) {
     if (files && files.length > 0) {
       this.file = files[0];
-
+      this.fileName = this.file.name;
 
       if (this.file.type === 'video/mp4') {
-        this.generateThumbnail(this.file);
-      } else {
-        alert('Only MP4 videos are supported.');
+
+        this.frameService.generateThumbnail(this.file).then(thumbnail => {
+          this.thumbnail = thumbnail;
+        }).catch(error => {
+          console.error('Failed to generate thumbnail', error);
+        });
+      }
+      else {
+        this.toastr.error('Invalid file type');
+        this.thumbnail = "";
+        this.fileName = "";
+        this.file = undefined;
       }
     }
-  }
-
-  generateThumbnail(file: File) {
-    const url = URL.createObjectURL(file);
-    const video = document.createElement('video');
-    const canvas = document.createElement('canvas');
-    const context = canvas.getContext('2d');
-
-    video.src = url;
-    video.load();
-
-    video.addEventListener('loadeddata', () => {
-      video.currentTime = 1;
-    });
-
-    video.addEventListener('seeked', () => {
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      if (context) {
-        context.drawImage(video, 0, 0, canvas.width, canvas.height);
-        const thumbnail = canvas.toDataURL('image/png');
-        this.fileName = file.name;
-        this.thumbnail = thumbnail;
-        URL.revokeObjectURL(url);
-      }
-    });
   }
 
   onSubmit() {

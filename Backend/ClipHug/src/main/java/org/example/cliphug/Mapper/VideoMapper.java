@@ -17,6 +17,8 @@ public class VideoMapper {
                 .size(video.getSize())
                 .uploadData(video.getUploadData())
                 .videoId(video.getId())
+                .visibility(video.getVisibility())
+                .authorId(video.getAuthor().getId().toString())
                 .build();
     }
 

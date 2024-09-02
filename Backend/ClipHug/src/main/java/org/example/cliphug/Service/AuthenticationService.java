@@ -113,4 +113,10 @@ public class AuthenticationService {
         User authUser = userDAO.findById((UUID) authentication.getPrincipal()).orElse(null);
         return authUser != null && authUser.getId().equals(id);
     }
+
+    public boolean checkIfUserIsRequestingTheirOwnData(UUID id) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UUID userId = UUID.fromString(authentication.getPrincipal().toString());
+        return userId.equals(id);
+    }
 }
