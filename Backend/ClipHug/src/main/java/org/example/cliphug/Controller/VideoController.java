@@ -75,6 +75,9 @@ public class VideoController {
             videosResponseDTO.add(videoMapper.fromEntity(video));
         }
 
+        // Now we sort the videos by upload date latest to oldest
+        videosResponseDTO.sort((o1, o2) -> o2.getUploadData().compareTo(o1.getUploadData()));
+
         return new ApiResponse<>(videosResponseDTO, HttpStatus.OK);
     }
 
