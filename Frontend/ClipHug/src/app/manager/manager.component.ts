@@ -81,8 +81,19 @@ export class ManagerComponent {
   }
 
   onDeleteClick() {
-    this.toastr.info("This feature is not implemented yet")
-  }
+    this.videoService.setVideoVisibility(this.video!.videoId, "deleted").subscribe({
+      next: () => {
+        this.toastr.success("Video is now deleted");
+        this.videoVisibility = "deleted";
+        // We reload the page because this video cannot be changed anymore
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
+
+      }, error: () => {
+        this.toastr.error("Failed to set video visibility")
+      }
+    });  }
 
   onPrivateClick() {
     this.videoService.setVideoVisibility(this.video!.videoId, "private").subscribe({

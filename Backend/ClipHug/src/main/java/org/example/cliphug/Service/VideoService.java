@@ -2,6 +2,7 @@ package org.example.cliphug.Service;
 
 
 import lombok.RequiredArgsConstructor;
+import org.apache.tomcat.util.http.fileupload.FileUtils;
 import org.example.cliphug.Dao.UserDao;
 import org.example.cliphug.Dao.VideoDao;
 import org.example.cliphug.Model.User;
@@ -15,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -130,6 +132,15 @@ public class VideoService {
             e.printStackTrace();
         }
         return null;
+    }
+
+    public void deleteVideo(Video video) throws IOException {
+        video.setVisibility(VideoVisibility.DELETED);
+        this.videoDao.save(video);
+
+        // Now we delete the video file as it just takes up space
+        FileUtils.deleteDirectory(new File("videos/" + video.getId()));
+
     }
 }
 

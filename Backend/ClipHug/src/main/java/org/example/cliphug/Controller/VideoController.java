@@ -142,7 +142,7 @@ public class VideoController {
     }
 
     @PatchMapping(value = "/{id}/{type}")
-    public ApiResponse<VideoResponseDTO> changeVideoVisibility(@PathVariable String id, @PathVariable String type) {
+    public ApiResponse<VideoResponseDTO> changeVideoVisibility(@PathVariable String id, @PathVariable String type) throws IOException {
         // We first check if our type can be converted to a VideoVisibility
         VideoVisibility visibility = VideoVisibility.valueOf(type.toUpperCase());
 
@@ -162,7 +162,7 @@ public class VideoController {
 
         // This isn't implemented yet as I want to delete the video and soft delete the data in the database
         if (visibility == VideoVisibility.DELETED) {
-            return new ApiResponse<>("This feature is not implemented yet", HttpStatus.NOT_IMPLEMENTED);
+            this.videoService.deleteVideo(video);
         }
 
         video.setVisibility(visibility);
