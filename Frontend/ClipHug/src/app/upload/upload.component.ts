@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import {Component, ElementRef, ViewChild} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {VideoService} from "../shared/service/requests/video.service";
 import {HttpErrorResponse} from "@angular/common/http";
@@ -16,6 +16,9 @@ export class UploadComponent {
   fileName: string = "";
   thumbnail: string = "";
   file?: File;
+
+  @ViewChild('fileInput') fileInput!: ElementRef;
+
 
   constructor(private videoService: VideoService, private toastr: ToastrService, private frameService: FrameService) {
 
@@ -71,5 +74,9 @@ export class UploadComponent {
         this.toastr.error('Failed to upload video');
       });
     }
+  }
+
+  onPreviewClick() {
+    this.fileInput.nativeElement.click();
   }
 }
