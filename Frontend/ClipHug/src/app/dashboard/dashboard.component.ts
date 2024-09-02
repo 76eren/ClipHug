@@ -7,7 +7,6 @@ import {VideoModel} from "../shared/models/Login/video.model";
 import {ItemComponent} from "./item/item.component";
 
 
-
 @Component({
   selector: 'app-dashboard',
   standalone: true,
@@ -18,6 +17,9 @@ import {ItemComponent} from "./item/item.component";
 
 export class DashboardComponent {
   public videos: VideoModel[] = [];
+  public videosFiltered: VideoModel[] = [];
+
+  videoUrlInputBar: string = "";
 
   constructor(private videoService: VideoService) {
   }
@@ -27,8 +29,21 @@ export class DashboardComponent {
       .getAllVideosFromSelf()
       .subscribe(response => {
         this.videos = response.payload;
-        console.log(this.videos)
+        this.videosFiltered = this.videos;
       })
   }
 
+  onInputChange() {
+    if (this.videoUrlInputBar === "") {
+      this.videosFiltered = this.videos;
+      return;
+    }
+
+    this.videosFiltered = [];
+    for (let i of this.videos) {
+      if (i.fileName.includes(this.videoUrlInputBar) || i.videoId.includes(this.videoUrlInputBar)) {
+        this.videosFiltered.push(i);
+      }
+    }
+  }
 }
