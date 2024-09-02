@@ -18,7 +18,7 @@ export class UploadComponent {
   file?: File;
 
   @ViewChild('fileInput') fileInput!: ElementRef;
-
+  private canSubmit: boolean = true;
 
   constructor(private videoService: VideoService, private toastr: ToastrService, private frameService: FrameService) {
 
@@ -71,12 +71,20 @@ export class UploadComponent {
   }
 
   onSubmit() {
+    if (!this.canSubmit) {
+      this.toastr.warning('Please wait for the previous upload to finish');
+      return;
+    }
+
     if (this.file) {
+      this.canSubmit = false;
       this.videoService.uploadVideo(this.file).subscribe((response) => {
         this.toastr.success('Video uploaded successfully');
-      },
+        this.canSubmit = true;
+        },
       (error: HttpErrorResponse) => {
         this.toastr.error('Failed to upload video');
+        this.canSubmit = true;
       });
     }
   }
