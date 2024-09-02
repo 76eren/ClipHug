@@ -35,7 +35,11 @@ export const routes: Routes = [
       {
         path: 'manager',
         component: ManagerComponent
-      }
+      },
+      {
+        path: '',
+        redirectTo: 'dashboard',
+      },
     ],
   },
   {
