@@ -39,6 +39,17 @@ export class DashboardComponent {
       return;
     }
 
+    if (this.videoUrlInputBar.startsWith("@")) {
+      this.videoService
+        .getAllVideosFromUser(this.videoUrlInputBar)
+        .subscribe(response => {
+          this.videosFiltered = response.payload;
+        })
+
+      return;
+    }
+
+
     this.videosFiltered = [];
     for (let i of this.videos) {
       if (i.fileName.includes(this.videoUrlInputBar) || i.videoId.includes(this.videoUrlInputBar)) {

@@ -81,6 +81,26 @@ public class VideoController {
         return new ApiResponse<>(videosResponseDTO, HttpStatus.OK);
     }
 
+    @GetMapping(value = "/user/{username}")
+    public ApiResponse<List<VideoResponseDTO>> getAllVideosFromUserById(@PathVariable String username) {
+        Optional<User> user = userDao.findByUsername(username);
+        if (user.isEmpty()) {
+            return new ApiResponse<>("User not found", HttpStatus.NOT_FOUND);
+        }
+
+        List<Video> videos = this.videoDao.getVideosByUserId(user.get());
+        List<VideoResponseDTO> videosReturnDto = new ArrayList<>();
+        for (Video video : videos) {
+            if (video.getVisibility() == VideoVisibility.DELETED || video.getVisibility() == VideoVisibility.PRIVATE) {
+                continue;
+            }
+
+            videosReturnDto.add(videoMapper.fromEntity(video));
+        }
+
+        return new ApiResponse<>(videosReturnDto);
+    }
+
     // This endpoint will be used to generate thumbnails for the various videos, this way we won't have to request all videos for a thumbnail via the frontend
     // TODO: Add visibility options
     @GetMapping(value = "/frame/{id}")

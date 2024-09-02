@@ -30,7 +30,6 @@ export class VideoService {
     return this.apiService.post(`/video/create`, { body: formData});
   }
 
-  // Right now the API only supports getting all videos from its own user, in the future I will add a possibility to get all videos from other users
   getAllVideosFromSelf(): Observable<ApiResponse<VideoModel[]>> {
     return this.apiService
       .get<ApiResponse<VideoModel[]>>('/video')
@@ -42,6 +41,16 @@ export class VideoService {
       );
   }
 
+  getAllVideosFromUser(id: string): Observable<ApiResponse<VideoModel[]>> {
+    return this.apiService
+      .get<ApiResponse<VideoModel[]>>('/video/user/' + id.replace("@", "").trim())
+      .pipe(
+        catchError((error) => {
+          console.error('Error fetching videos: ', error);
+          throw error;
+        })
+      );
+  }
 
   getVideoUrl(video: VideoModel) {
     return ApiService.API_URL + "/video/" + video.videoId;
