@@ -4,6 +4,7 @@ import {Observable} from "rxjs";
 import {ApiResponse} from "../../models/ApiResponse";
 import {VideoModel} from "../../models/Login/video.model";
 import {catchError} from "rxjs/operators";
+import {RegisterModel} from "../../models/Login/register.model";
 
 @Injectable({
   providedIn: 'root',
@@ -59,6 +60,11 @@ export class VideoService {
   getThumbnailUrl(video: VideoModel) {
     console.log( ApiService.API_URL + "/video/frame/" + video.videoId);
     return ApiService.API_URL + "/video/frame/" + video.videoId;
+  }
+
+  getMultipleThumbnailsUrl(ids: string[]) {
+    let payload = {"videoIds": ids};
+    return this.apiService.post<ApiResponse<string[]>>('/video/frame', { body: payload })
   }
 
   setVideoVisibility(videoId: string, visibility: string) {

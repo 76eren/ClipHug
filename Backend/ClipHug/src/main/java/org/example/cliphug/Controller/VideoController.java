@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.bytedeco.javacv.FrameGrabber;
 import org.example.cliphug.Dao.UserDao;
 import org.example.cliphug.Dao.VideoDao;
+import org.example.cliphug.Dto.Thumbnail.ThumbnailRequestDTO;
 import org.example.cliphug.Dto.Video.VideoResponseDTO;
 import org.example.cliphug.Dto.Video.VideoUploadDTO;
 import org.example.cliphug.Mapper.VideoMapper;
@@ -103,8 +104,6 @@ public class VideoController {
         return new ApiResponse<>(videosReturnDto);
     }
 
-    // This endpoint will be used to generate thumbnails for the various videos, this way we won't have to request all videos for a thumbnail via the frontend
-    // TODO: Add visibility options
     @GetMapping(value = "/frame/{id}")
     public ResponseEntity<byte[]> getFirstFrameOfVideo(@PathVariable UUID id) {
         Video video = this.videoDao.getVideoById(id);
@@ -125,6 +124,30 @@ public class VideoController {
         byte[] frame = this.thumbnailService.getFirstFrameOfVideo(video);
         return ResponseEntity.ok().contentType(MediaType.IMAGE_JPEG).body(frame);
     }
+
+    // Returns multiple frames of the video
+    @PostMapping(value = "/frame")
+    public ApiResponse<List<byte[]>> getFirstFrameOfVideo(@RequestBody ThumbnailRequestDTO videoIds) {
+        if (videoIds.getVideoIds().isEmpty()) {
+            return new ApiResponse<>("No video ids provided", HttpStatus.BAD_REQUEST);
+        }
+
+        List<byte[]> images = new ArrayList<>();
+
+        for (String videoId : videoIds.getVideoIds()) {
+            if (!videoId.matches("^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$")) {
+                return new ApiResponse<>("Invalid video id", HttpStatus.BAD_REQUEST);
+            }
+
+            byte[] frame = this.thumbnailService.getFirstFrameOfVideo(this.videoDao.getVideoById(UUID.fromString(videoId)));
+            if (frame != null) {
+                images.add(frame);
+            }
+        }
+
+        return new ApiResponse<>(images);
+    }
+
 
     @GetMapping(value = "/{id}")
     public ResponseEntity<Resource> getVideoById(@PathVariable UUID id) {

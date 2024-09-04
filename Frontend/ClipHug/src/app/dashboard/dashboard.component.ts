@@ -6,6 +6,7 @@ import {VideoService} from "../shared/service/requests/video.service";
 import {VideoModel} from "../shared/models/Login/video.model";
 import {ItemComponent} from "./item/item.component";
 import {ToastrService} from "ngx-toastr";
+import {ThumbnailsService} from "../shared/service/requests/thumbnails.service";
 
 
 @Component({
@@ -27,7 +28,9 @@ export class DashboardComponent {
   bulks: number = 0;
   page = 1;
 
-  constructor(private videoService: VideoService, private toastr: ToastrService) {
+  public images: string[] = []
+
+  constructor(private videoService: VideoService, private toastr: ToastrService, private thumbnailService: ThumbnailsService) {
   }
 
   ngOnInit() {
@@ -39,6 +42,7 @@ export class DashboardComponent {
         this.bulks = Math.ceil(this.videos.length / this.bulkAmount)
 
         this.videosFiltered = this.videos.slice(0, this.bulkAmount);
+        this.changeThumbnails();
       })
   }
 
@@ -72,13 +76,21 @@ export class DashboardComponent {
     }
   }
 
+  changeThumbnails() {
+    let idsToGet: string[] = this.videosFiltered.map((video) => video.videoId);
+    console.log(idsToGet);
+    this.videoService.getMultipleThumbnailsUrl(idsToGet).subscribe({ next: (response) => {
+        this.thumbnailService.setThumbnails(response.payload);
+      }});
+  }
+
   previousPage() {
     if (this.page === 1) {
       return;
     }
     this.page --;
     this.videosFiltered = this.videos.slice(this.page * this.bulkAmount - this.bulkAmount, this.page * this.bulkAmount);
-
+    this.changeThumbnails();
   }
 
   nextPage() {
@@ -87,6 +99,6 @@ export class DashboardComponent {
     }
     this.page ++;
     this.videosFiltered = this.videos.slice(this.page * this.bulkAmount, this.page * this.bulkAmount + this.bulkAmount);
-
+    this.changeThumbnails();
   }
 }

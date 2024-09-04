@@ -1,4 +1,4 @@
 <div>
-  <img (click)="onVideoClick()" class="h-auto max-w-full rounded-lg" src="{{getThumbnailUrl(video!)}}" alt="">
+  <img (click)="onVideoClick()" class="h-auto max-w-full rounded-lg" [src]="getThumbnailUrl()" alt="">
   <p class="italics">{{video?.fileName}}</p>
 </div>
