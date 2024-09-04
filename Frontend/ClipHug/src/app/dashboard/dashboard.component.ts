@@ -22,6 +22,11 @@ export class DashboardComponent {
 
   videoUrlInputBar: string = "";
 
+  // Videos will be loaded in bulks because the server can't handle all the videos at once
+  bulkAmount: number = 6;
+  bulks: number = 0;
+  page = 1;
+
   constructor(private videoService: VideoService, private toastr: ToastrService) {
   }
 
@@ -30,7 +35,10 @@ export class DashboardComponent {
       .getAllVideosFromSelf()
       .subscribe(response => {
         this.videos = response.payload;
-        this.videosFiltered = this.videos;
+
+        this.bulks = Math.ceil(this.videos.length / this.bulkAmount)
+
+        this.videosFiltered = this.videos.slice(0, this.bulkAmount);
       })
   }
 
@@ -62,5 +70,23 @@ export class DashboardComponent {
         this.videosFiltered.push(i);
       }
     }
+  }
+
+  previousPage() {
+    if (this.page === 1) {
+      return;
+    }
+    this.page --;
+    this.videosFiltered = this.videos.slice(this.page * this.bulkAmount - this.bulkAmount, this.page * this.bulkAmount);
+
+  }
+
+  nextPage() {
+    if (this.page === this.bulks-1) {
+      return;
+    }
+    this.page ++;
+    this.videosFiltered = this.videos.slice(this.page * this.bulkAmount, this.page * this.bulkAmount + this.bulkAmount);
+
   }
 }
