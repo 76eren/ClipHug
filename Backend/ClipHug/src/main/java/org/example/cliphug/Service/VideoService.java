@@ -35,6 +35,7 @@ public class VideoService {
     private final String VIDEO_DIRECTORY = "videos";
     private final VideoDao videoDao;
     private final UserDao userDao;
+    private final ThumbnailService thumbnailService;
 
     public void storeVideo(MultipartFile videoFile, UUID userId) throws IOException {
         Video newVideo = createVideo(videoFile);
@@ -58,6 +59,9 @@ public class VideoService {
         userDao.save(user.get());
 
         storeVideoFile(videoFile, newVideo);
+
+        byte[] thumbnail = thumbnailService.generateThumbnail(newVideo);
+        this.thumbnailService.storeThumbnail(newVideo, thumbnail);
     }
 
     private void storeVideoFile(MultipartFile videoFile, Video newVideo) throws IOException {
@@ -107,32 +111,6 @@ public class VideoService {
         }
     }
 
-    public byte[] getFirstFrameOfVideo(Video video) {
-
-        try (FFmpegFrameGrabber frameGrabber = new FFmpegFrameGrabber("videos/" + video.getId() + "/" + video.getFileName())) {
-            frameGrabber.start();
-
-            // Grab the first frame
-            Frame frame = frameGrabber.grabImage();
-
-            if (frame != null) {
-                Java2DFrameConverter converter = new Java2DFrameConverter();
-                BufferedImage bufferedImage = converter.convert(frame);
-
-                ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                ImageIO.write(bufferedImage, "jpg", baos);
-                baos.flush();
-                byte[] imageInByte = baos.toByteArray();
-                baos.close();
-
-                return imageInByte;
-            }
-            frameGrabber.stop();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
 
     public void deleteVideo(Video video) throws IOException {
         video.setVisibility(VideoVisibility.DELETED);

@@ -12,6 +12,7 @@ import org.example.cliphug.Model.User;
 import org.example.cliphug.Model.Video;
 import org.example.cliphug.Model.VideoVisibility;
 import org.example.cliphug.Service.AuthenticationService;
+import org.example.cliphug.Service.ThumbnailService;
 import org.example.cliphug.Service.VideoService;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -40,6 +41,7 @@ public class VideoController {
     private final UserDao userDao;
     private final VideoMapper videoMapper;
     private final AuthenticationService authenticationService;
+    private final ThumbnailService thumbnailService;
 
     @PostMapping(value = "/create")
     public ApiResponse<?> createVideo(@ModelAttribute VideoUploadDTO videoUploadDTO) throws IOException {
@@ -120,7 +122,7 @@ public class VideoController {
             }
         }
 
-        byte[] frame = this.videoService.getFirstFrameOfVideo(video);
+        byte[] frame = this.thumbnailService.getFirstFrameOfVideo(video);
         return ResponseEntity.ok().contentType(MediaType.IMAGE_JPEG).body(frame);
     }
 
