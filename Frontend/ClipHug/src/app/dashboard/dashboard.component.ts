@@ -40,6 +40,7 @@ export class DashboardComponent {
         this.videos = response.payload;
 
         this.bulks = Math.ceil(this.videos.length / this.bulkAmount)
+        console.log("I amm creating: " + this.bulks + " bulks because there are " + this.videos.length + " videos and I divide them by " + this.bulkAmount + " videos per bulk");
 
         this.videosFiltered = this.videos.slice(0, this.bulkAmount);
         this.changeThumbnails();
@@ -87,17 +88,19 @@ export class DashboardComponent {
     if (this.page === 1) {
       return;
     }
-    this.page --;
-    this.videosFiltered = this.videos.slice(this.page * this.bulkAmount - this.bulkAmount, this.page * this.bulkAmount);
+    this.page--;
+    const startIndex = (this.page - 1) * this.bulkAmount;
+    this.videosFiltered = this.videos.slice(startIndex, startIndex + this.bulkAmount);
     this.changeThumbnails();
   }
 
   nextPage() {
-    if (this.page === this.bulks-1) {
+    if (this.page === this.bulks) {
       return;
     }
-    this.page ++;
-    this.videosFiltered = this.videos.slice(this.page * this.bulkAmount, this.page * this.bulkAmount + this.bulkAmount);
+    this.page++;
+    const startIndex = (this.page - 1) * this.bulkAmount;
+    this.videosFiltered = this.videos.slice(startIndex, startIndex + this.bulkAmount);
     this.changeThumbnails();
   }
 }
