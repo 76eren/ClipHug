@@ -30,7 +30,7 @@ export class DashboardComponent {
 
   public images: string[] = []
 
-  constructor(private videoService: VideoService, private toastr: ToastrService, private thumbnailService: ThumbnailsService) {
+  constructor(private videoService: VideoService, private toastr: ToastrService, public thumbnailService: ThumbnailsService) {
   }
 
   ngOnInit() {
@@ -78,7 +78,6 @@ export class DashboardComponent {
 
   changeThumbnails() {
     let idsToGet: string[] = this.videosFiltered.map((video) => video.videoId);
-    console.log(idsToGet);
     this.videoService.getMultipleThumbnailsUrl(idsToGet).subscribe({ next: (response) => {
         this.thumbnailService.setThumbnails(response.payload);
       }});

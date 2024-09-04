@@ -58,7 +58,6 @@ export class VideoService {
   }
 
   getThumbnailUrl(video: VideoModel) {
-    console.log( ApiService.API_URL + "/video/frame/" + video.videoId);
     return ApiService.API_URL + "/video/frame/" + video.videoId;
   }
 

@@ -12,7 +12,7 @@
 
 <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
   <div class="item" *ngFor="let video of videosFiltered; let i = index">
-    <app-item [video]="video" [index]="i"></app-item>
+    <app-item [video]="video" [index]="i" [thumbnail]="this.thumbnailService.getThumbnailByNumber(i)"></app-item>
   </div>
 </div>
 
