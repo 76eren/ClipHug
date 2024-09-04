@@ -48,7 +48,7 @@ export class DashboardComponent {
 
   onInputChange() {
     if (this.videoUrlInputBar === "") {
-      this.videosFiltered = this.videos;
+      this.videosFiltered = this.videos.slice(0, this.bulkAmount);
       return;
     }
 
