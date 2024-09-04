@@ -40,7 +40,6 @@ export class DashboardComponent {
         this.videos = response.payload;
 
         this.bulks = Math.ceil(this.videos.length / this.bulkAmount)
-        console.log("I amm creating: " + this.bulks + " bulks because there are " + this.videos.length + " videos and I divide them by " + this.bulkAmount + " videos per bulk");
 
         this.videosFiltered = this.videos.slice(0, this.bulkAmount);
         this.changeThumbnails();
