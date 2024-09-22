@@ -73,14 +73,13 @@ public class VideoService {
 
         String fileName = video.getFileName().toString();
         Date currentDate = new Date();
-        float sizeKB = (float) video.toFile().length() / 1024;
         UUID videoId = UUID.randomUUID();
 
         Video vid = Video.builder()
                 .id(videoId)
                 .fileName(fileName)
                 .author(author.get())
-                .size(sizeKB)
+                .size(-1) // This will be calculated later as the video is uploaded in chunks
                 .visibility(VideoVisibility.PUBLIC) // By default, the videos are public
                 .uploadData(currentDate)
                 .build();
@@ -150,8 +149,14 @@ public class VideoService {
                 Files.delete(chunkFile);
             }
 
+            // Now that all the chunks are combined we can calculate the size of the video and add it to the database
+            float sizeKB = (float) Files.size(outputFile) / 1024;
+            video.setSize(sizeKB);
+            this.videoDao.save(video);
+
             // After all is done we can store the data in the database
             this.storeVideo(video);
+
         }
 
 
