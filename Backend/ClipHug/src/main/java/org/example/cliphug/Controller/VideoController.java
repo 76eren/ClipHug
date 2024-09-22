@@ -25,6 +25,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -146,7 +147,7 @@ public class VideoController {
 
 
     @GetMapping(value = "/{id}")
-    public ResponseEntity<Resource> getVideoById(@PathVariable UUID id) throws IOException {
+    public ResponseEntity<StreamingResponseBody> getVideoById(@PathVariable UUID id) throws IOException {
         Video video = this.videoDao.getVideoById(id);
         if (video == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);

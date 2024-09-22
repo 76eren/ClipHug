@@ -15,6 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import java.io.File;
 import java.io.IOException;
@@ -42,7 +43,7 @@ public class VideoService {
     }
 
 
-    public ResponseEntity<Resource> getVideoById(UUID id) {
+    public ResponseEntity<StreamingResponseBody> getVideoById(UUID id) {
         try {
             Video video = this.videoDao.getVideoById(id);
             if (video == null) {
@@ -50,16 +51,23 @@ public class VideoService {
             }
 
             Path videoPath = Paths.get("videos/"+video.getId()).resolve(video.getFileName()).normalize();
-            Resource resource = new UrlResource(videoPath.toUri());
-
-            if (resource.exists() && resource.isReadable()) {
-                return ResponseEntity.ok()
-                        .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + resource.getFilename() + "\"")
-                        .header(HttpHeaders.CONTENT_TYPE, "video/mp4")
-                        .body(resource);
-            } else {
+            if (!Files.exists(videoPath) || !Files.isReadable(videoPath)) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
             }
+
+            StreamingResponseBody stream = outputStream -> {
+                try {
+                    Files.copy(videoPath, outputStream);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            };
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + videoPath.getFileName() + "\"")
+                    .header(HttpHeaders.CONTENT_TYPE, "video/mp4")
+                    .body(stream);
+
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
