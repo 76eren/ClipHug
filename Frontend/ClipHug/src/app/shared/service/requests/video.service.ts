@@ -70,4 +70,15 @@ export class VideoService {
     return this.apiService.patch(`/video/${videoId}/${visibility}`, { body: {visibility: visibility}});
   }
 
+
+  uploadChunk(file: File, chunk: Blob, chunkNumber: number, totalChunks: number, filename: string): Observable<any> {
+    const formData = new FormData();
+    formData.append('file', chunk, `chunk_${chunkNumber}.part`);
+    formData.append('chunk', String(chunkNumber));
+    formData.append('chunks', String(totalChunks));
+    formData.append("fileName", filename);
+    return this.apiService.post('/video/create', { body: formData });
+  }
+
+
 }

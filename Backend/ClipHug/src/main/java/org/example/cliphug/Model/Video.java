@@ -19,11 +19,6 @@ import java.util.UUID;
 @Table(name = "video")
 public class Video {
     @Id
-    @GeneratedValue(generator = "UUID")
-    @GenericGenerator(
-            name = "UUID",
-            strategy = "org.hibernate.id.UUIDGenerator"
-    )
     @Column(nullable = false, unique = true)
     @JsonProperty
     private UUID id; // This will be the name of the directory the video is stored in

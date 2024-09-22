@@ -24,6 +24,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -43,21 +44,6 @@ public class VideoController {
     private final VideoMapper videoMapper;
     private final AuthenticationService authenticationService;
     private final ThumbnailService thumbnailService;
-
-    @PostMapping(value = "/create")
-    public ApiResponse<?> createVideo(@ModelAttribute VideoUploadDTO videoUploadDTO) throws IOException {
-        if (videoUploadDTO.getVideo() == null) {
-            return new ApiResponse<>("No video uploaded", HttpStatus.BAD_REQUEST);
-        }
-
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        UUID userId = UUID.fromString(authentication.getPrincipal().toString());
-
-        this.videoService.storeVideo(videoUploadDTO.getVideo(), userId);
-
-        return new ApiResponse<>("Video created", HttpStatus.OK);
-    }
-
 
     @GetMapping()
     public ApiResponse<List<VideoResponseDTO>> getAllVideosFromSelf() {
@@ -212,6 +198,24 @@ public class VideoController {
 
         video.setVisibility(visibility);
         return new ApiResponse<>(videoMapper.fromEntity(videoDao.save(video)), HttpStatus.OK);
+    }
+
+
+    @PostMapping(value = "/create")
+    public ApiResponse<?> createVideo(@RequestParam("file") MultipartFile file,
+                                      @RequestParam("chunk") int chunk,
+                                      @RequestParam("chunks") int totalChunks,
+                                      @RequestParam ("fileName") String fileName)
+            throws IOException {
+        if (file.isEmpty()) {
+            return new ApiResponse<>("No file part", HttpStatus.BAD_REQUEST);
+        }
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UUID userId = UUID.fromString(authentication.getPrincipal().toString());
+
+        this.videoService.storeChunk(file, userId, chunk, totalChunks, fileName);
+        return new ApiResponse<>("Chunk received", HttpStatus.OK);
     }
 
 

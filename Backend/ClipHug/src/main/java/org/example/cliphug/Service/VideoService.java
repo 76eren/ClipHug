@@ -18,16 +18,14 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
-import java.util.*;
-import org.bytedeco.javacv.*;
-import org.bytedeco.javacv.Frame;
-import java.io.ByteArrayOutputStream;
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -37,56 +35,12 @@ public class VideoService {
     private final UserDao userDao;
     private final ThumbnailService thumbnailService;
 
-    public void storeVideo(MultipartFile videoFile, UUID userId) throws IOException {
-        Video newVideo = createVideo(videoFile);
-
-        Optional<User> user = userDao.findById(userId);
-
-        // This should be impossible
-        if (user.isEmpty()) {
-            throw new IllegalArgumentException("User not found");
-        }
-
-
-        List<Video> userVideos = user.get().getVideos();
-        userVideos.add(newVideo);
-        user.get().setVideos(userVideos);
-
-
-        newVideo.setAuthor(user.get());
-
-        videoDao.save(newVideo);
-        userDao.save(user.get());
-
-        storeVideoFile(videoFile, newVideo);
-
-        byte[] thumbnail = thumbnailService.generateThumbnail(newVideo);
-        this.thumbnailService.storeThumbnail(newVideo, thumbnail);
+    public void storeVideo(Video video) {
+        // TODO: This code can go somewhere else they're leftovers from the previous implementation
+        byte[] thumbnail = thumbnailService.generateThumbnail(video);
+        this.thumbnailService.storeThumbnail(video, thumbnail);
     }
 
-    private void storeVideoFile(MultipartFile videoFile, Video newVideo) throws IOException {
-        String directoryPath = VIDEO_DIRECTORY + "/" + newVideo.getId();
-        Path directory = Paths.get(directoryPath);
-        if (!Files.exists(directory)) {
-            Files.createDirectories(directory);
-        }
-
-        Path filePath = directory.resolve(newVideo.getFileName());
-        Files.copy(videoFile.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
-    }
-
-    private Video createVideo(MultipartFile video) {
-        String fileName = video.getOriginalFilename();
-        Date currentDate = new Date();
-        float size = (float) video.getSize() / 1024; // Size in KB
-
-        return Video.builder()
-                .fileName(fileName)
-                .size(size)
-                .visibility(VideoVisibility.PUBLIC) // By default, the videos are public
-                .uploadData(currentDate)
-                .build();
-    }
 
     public ResponseEntity<Resource> getVideoById(UUID id) {
         try {
@@ -111,6 +65,37 @@ public class VideoService {
         }
     }
 
+    public Video createVideo(Path video, UUID userId) {
+        Optional<User> author = this.userDao.findById(userId);
+        if (author.isEmpty()) {
+            throw new IllegalArgumentException("User not found");
+        }
+
+        String fileName = video.getFileName().toString();
+        Date currentDate = new Date();
+        float sizeKB = (float) video.toFile().length() / 1024;
+        UUID videoId = UUID.randomUUID();
+
+        Video vid = Video.builder()
+                .id(videoId)
+                .fileName(fileName)
+                .author(author.get())
+                .size(sizeKB)
+                .visibility(VideoVisibility.PUBLIC) // By default, the videos are public
+                .uploadData(currentDate)
+                .build();
+
+        // Now we assign the video to the user
+        List<Video> userVideos = author.get().getVideos();
+        userVideos.add(vid);
+        author.get().setVideos(userVideos);
+
+        this.videoDao.save(vid);
+        this.userDao.save(author.get());
+
+        return vid;
+    }
+
 
     public void deleteVideo(Video video) throws IOException {
         video.setVisibility(VideoVisibility.DELETED);
@@ -120,5 +105,60 @@ public class VideoService {
         FileUtils.deleteDirectory(new File("videos/" + video.getId()));
 
     }
+
+
+    public void storeChunk(MultipartFile fileChunk, UUID userId, int chunk, int totalChunks, String fileName) throws IOException {
+        // We don't want a different video object every chunk, so we store this video object once and then use it
+        // A video object only has a reference to all the metadata therefore we can store it at the first chunk
+        Video video;
+        if (chunk == 0) {
+            video = createVideo(Paths.get(fileName), userId);
+        }
+        else {
+            // Since we don't have the video id we cannot retrieve it for each chunk eitherH
+            // in the first chunk however the video did get added to the user so from there we can make a reference to the video
+            // However this  implementation is not idea as this would mean a user cannot upload two videos at the same time
+            Optional<User> author = this.userDao.findById(userId); // Also querying the user for every chunk is probably not ideal either
+            if (author.isEmpty()) {
+                throw new IllegalArgumentException("User not found");
+            }
+            video = author.get().getVideos().get(author.get().getVideos().size()-1);
+        }
+
+        Path tempDir = Paths.get(VIDEO_DIRECTORY, video.getId().toString());
+        Files.createDirectories(tempDir);
+
+        Path chunkFile = tempDir.resolve("chunk_" + chunk + ".part");
+        fileChunk.transferTo(chunkFile);
+
+        if (areAllChunksUploaded(tempDir, totalChunks)) {
+            combineChunks(tempDir, totalChunks, fileName, video);
+        }
+    }
+
+    private boolean areAllChunksUploaded(Path directory, int totalChunks) throws IOException {
+        long count = Files.list(directory).filter(path -> path.toString().endsWith(".part")).count();
+        return count == totalChunks;
+    }
+
+    private void combineChunks(Path directory, int totalChunks, String fileName, Video video) throws IOException {
+        Path outputFile = directory.resolve(fileName);
+        try (OutputStream out = Files.newOutputStream(outputFile)) {
+            for (int i = 0; i < totalChunks; i++) {
+                Path chunkFile = directory.resolve("chunk_" + i + ".part");
+                Files.copy(chunkFile, out);
+                Files.delete(chunkFile);
+            }
+
+            // After all is done we can store the data in the database
+            this.storeVideo(video);
+        }
+
+
+
+
+    }
+
+
 }
 
