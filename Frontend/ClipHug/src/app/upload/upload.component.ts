@@ -18,7 +18,8 @@ export class UploadComponent {
   file?: File;
 
   @ViewChild('fileInput') fileInput!: ElementRef;
-  private canSubmit: boolean = true;
+  public canSubmit: boolean = true;
+  public uploadProgress: number = 0;
 
   constructor(private videoService: VideoService, private toastr: ToastrService, private frameService: FrameService) {
 
@@ -74,6 +75,7 @@ export class UploadComponent {
     const chunk = file.slice(currentChunk * chunkSize, (currentChunk + 1) * chunkSize);
     this.videoService.uploadChunk(file, chunk, currentChunk, totalChunks, file.name).subscribe({
       next: (response) => {
+        this.uploadProgress = (currentChunk + 1) / totalChunks * 100;
         if (currentChunk < totalChunks - 1) {
           this.uploadChunkRecursive(file, chunkSize, totalChunks, currentChunk + 1);
         } else {
