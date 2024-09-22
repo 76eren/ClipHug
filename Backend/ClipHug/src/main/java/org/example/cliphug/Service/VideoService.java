@@ -13,6 +13,7 @@ import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
@@ -170,13 +171,21 @@ public class VideoService {
 
     }
 
-    public void deleteNotFullyUploadedVideo(Video video) throws IOException {
-        this.deleteVideo(video);
-
-        // Mark the video as deleted
-        video.setVisibility(VideoVisibility.DELETED);
-        video.setFullyUploaded(true); // I set this to true so that the video gets marked as deleted video like the others and this method won't be called because of an oversight
-        this.videoDao.save(video);
+    @Scheduled(fixedDelay = 86400000) // This will run every 24 hours
+    public void deleteNotFullyUploadedVideo() throws IOException {
+        List<Video> videos = this.videoDao.findAll();
+        for (Video video : videos) {
+            if (!video.isFullyUploaded()) {
+                // We can only delete a video if a day has passed, and it's not fully uploaded
+                // This will prevent the unlikely situation where a user is uploading a video and the video gets deleted
+                Date currentDate = new Date();
+                long diff = currentDate.getTime() - video.getUploadData().getTime();
+                long diffDays = diff / (24 * 60 * 60 * 1000);
+                if (diffDays >= 1) {
+                    this.deleteVideo(video);
+                }
+            }
+        }
     }
 
 

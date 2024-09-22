@@ -63,7 +63,6 @@ public class VideoController {
             }
 
             if (!video.isFullyUploaded()) {
-                this.videoService.deleteNotFullyUploadedVideo(video);
                 continue;
             }
 
@@ -91,7 +90,6 @@ public class VideoController {
             }
 
             if (!video.isFullyUploaded()) {
-                this.videoService.deleteNotFullyUploadedVideo(video);
                 continue;
             }
 
@@ -185,7 +183,6 @@ public class VideoController {
         }
 
         if (!video.isFullyUploaded()) {
-            this.videoService.deleteNotFullyUploadedVideo(video);
             return new ApiResponse<>("Video not found", HttpStatus.NOT_FOUND);
         }
 
