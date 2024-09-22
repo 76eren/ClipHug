@@ -149,19 +149,26 @@ public class VideoService {
                 Files.delete(chunkFile);
             }
 
-            // Now that all the chunks are combined we can calculate the size of the video and add it to the database
-            float sizeKB = (float) Files.size(outputFile) / 1024;
-            video.setSize(sizeKB);
-            this.videoDao.save(video);
-
             // After all is done we can store the data in the database
             this.storeVideo(video);
 
+            // Now that all the chunks are combined we can calculate the size of the video and add it to the database
+            float sizeKB = (float) Files.size(outputFile) / 1024;
+            video.setSize(sizeKB);
+            video.setFullyUploaded(true); // We can now mark the video as fully uploaded
+            this.videoDao.save(video);
+
         }
 
+    }
 
+    public void deleteNotFullyUploadedVideo(Video video) throws IOException {
+        this.deleteVideo(video);
 
-
+        // Mark the video as deleted
+        video.setVisibility(VideoVisibility.DELETED);
+        video.setFullyUploaded(true); // I set this to true so that the video gets marked as deleted video like the others and this method won't be called because of an oversight
+        this.videoDao.save(video);
     }
 
 

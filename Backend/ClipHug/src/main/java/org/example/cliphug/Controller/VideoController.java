@@ -46,7 +46,7 @@ public class VideoController {
     private final ThumbnailService thumbnailService;
 
     @GetMapping()
-    public ApiResponse<List<VideoResponseDTO>> getAllVideosFromSelf() {
+    public ApiResponse<List<VideoResponseDTO>> getAllVideosFromSelf() throws IOException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UUID userId = UUID.fromString(authentication.getPrincipal().toString());
         Optional<User> user = userDao.findById(userId);
@@ -61,6 +61,11 @@ public class VideoController {
                 continue;
             }
 
+            if (!video.isFullyUploaded()) {
+                this.videoService.deleteNotFullyUploadedVideo(video);
+                continue;
+            }
+
             videosResponseDTO.add(videoMapper.fromEntity(video));
         }
 
@@ -71,7 +76,7 @@ public class VideoController {
     }
 
     @GetMapping(value = "/user/{username}")
-    public ApiResponse<List<VideoResponseDTO>> getAllVideosFromUserById(@PathVariable String username) {
+    public ApiResponse<List<VideoResponseDTO>> getAllVideosFromUserById(@PathVariable String username) throws IOException {
         Optional<User> user = userDao.findByUsername(username);
         if (user.isEmpty()) {
             return new ApiResponse<>("User not found", HttpStatus.NOT_FOUND);
@@ -81,6 +86,11 @@ public class VideoController {
         List<VideoResponseDTO> videosReturnDto = new ArrayList<>();
         for (Video video : videos) {
             if (video.getVisibility() == VideoVisibility.DELETED || video.getVisibility() == VideoVisibility.PRIVATE) {
+                continue;
+            }
+
+            if (!video.isFullyUploaded()) {
+                this.videoService.deleteNotFullyUploadedVideo(video);
                 continue;
             }
 
@@ -136,7 +146,7 @@ public class VideoController {
 
 
     @GetMapping(value = "/{id}")
-    public ResponseEntity<Resource> getVideoById(@PathVariable UUID id) {
+    public ResponseEntity<Resource> getVideoById(@PathVariable UUID id) throws IOException {
         Video video = this.videoDao.getVideoById(id);
         if (video == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
@@ -150,12 +160,16 @@ public class VideoController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
 
+        if (!video.isFullyUploaded()) {
+            this.videoService.deleteVideo(video);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
 
         return this.videoService.getVideoById(id);
     }
 
     @GetMapping(value = "/data/{id}")
-    public ApiResponse<VideoResponseDTO> getVideoDataById(@PathVariable UUID id) {
+    public ApiResponse<VideoResponseDTO> getVideoDataById(@PathVariable UUID id) throws IOException {
         Video video = this.videoDao.getVideoById(id);
         if (video == null) {
             return new ApiResponse<>("Video not found", HttpStatus.NOT_FOUND);
@@ -166,6 +180,11 @@ public class VideoController {
         }
 
         if (video.getVisibility() == VideoVisibility.DELETED) {
+            return new ApiResponse<>("Video not found", HttpStatus.NOT_FOUND);
+        }
+
+        if (!video.isFullyUploaded()) {
+            this.videoService.deleteNotFullyUploadedVideo(video);
             return new ApiResponse<>("Video not found", HttpStatus.NOT_FOUND);
         }
 
@@ -191,7 +210,6 @@ public class VideoController {
             return new ApiResponse<>("Video not found", HttpStatus.NOT_FOUND);
         }
 
-        // This isn't implemented yet as I want to delete the video and soft delete the data in the database
         if (visibility == VideoVisibility.DELETED) {
             this.videoService.deleteVideo(video);
         }
