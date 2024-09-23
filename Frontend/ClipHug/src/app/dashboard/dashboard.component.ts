@@ -50,6 +50,10 @@ export class DashboardComponent {
   }
 
   handleVideoResponse(videos: VideoModel[]) {
+    if (videos.length === 0) {
+      return;
+    }
+
     this.videos = videos;
     this.videosOriginal = videos;
     this.updatePagination();
