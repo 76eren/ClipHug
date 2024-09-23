@@ -32,4 +32,8 @@ public class VideoDao {
     public List<Video> getVideosByUserId(User user) {
         return this.videoRepository.findByAuthor_Id(user.getId());
     }
+
+    public List<Video> findAll() {
+        return videoRepository.findAll();
+    }
 }

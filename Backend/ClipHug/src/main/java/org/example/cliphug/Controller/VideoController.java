@@ -24,6 +24,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -44,23 +46,8 @@ public class VideoController {
     private final AuthenticationService authenticationService;
     private final ThumbnailService thumbnailService;
 
-    @PostMapping(value = "/create")
-    public ApiResponse<?> createVideo(@ModelAttribute VideoUploadDTO videoUploadDTO) throws IOException {
-        if (videoUploadDTO.getVideo() == null) {
-            return new ApiResponse<>("No video uploaded", HttpStatus.BAD_REQUEST);
-        }
-
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        UUID userId = UUID.fromString(authentication.getPrincipal().toString());
-
-        this.videoService.storeVideo(videoUploadDTO.getVideo(), userId);
-
-        return new ApiResponse<>("Video created", HttpStatus.OK);
-    }
-
-
     @GetMapping()
-    public ApiResponse<List<VideoResponseDTO>> getAllVideosFromSelf() {
+    public ApiResponse<List<VideoResponseDTO>> getAllVideosFromSelf() throws IOException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UUID userId = UUID.fromString(authentication.getPrincipal().toString());
         Optional<User> user = userDao.findById(userId);
@@ -75,6 +62,10 @@ public class VideoController {
                 continue;
             }
 
+            if (!video.isFullyUploaded()) {
+                continue;
+            }
+
             videosResponseDTO.add(videoMapper.fromEntity(video));
         }
 
@@ -85,7 +76,7 @@ public class VideoController {
     }
 
     @GetMapping(value = "/user/{username}")
-    public ApiResponse<List<VideoResponseDTO>> getAllVideosFromUserById(@PathVariable String username) {
+    public ApiResponse<List<VideoResponseDTO>> getAllVideosFromUserById(@PathVariable String username) throws IOException {
         Optional<User> user = userDao.findByUsername(username);
         if (user.isEmpty()) {
             return new ApiResponse<>("User not found", HttpStatus.NOT_FOUND);
@@ -95,6 +86,10 @@ public class VideoController {
         List<VideoResponseDTO> videosReturnDto = new ArrayList<>();
         for (Video video : videos) {
             if (video.getVisibility() == VideoVisibility.DELETED || video.getVisibility() == VideoVisibility.PRIVATE) {
+                continue;
+            }
+
+            if (!video.isFullyUploaded()) {
                 continue;
             }
 
@@ -150,7 +145,7 @@ public class VideoController {
 
 
     @GetMapping(value = "/{id}")
-    public ResponseEntity<Resource> getVideoById(@PathVariable UUID id) {
+    public ResponseEntity<StreamingResponseBody> getVideoById(@PathVariable UUID id) throws IOException {
         Video video = this.videoDao.getVideoById(id);
         if (video == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
@@ -164,12 +159,16 @@ public class VideoController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
 
+        if (!video.isFullyUploaded()) {
+            this.videoService.deleteVideo(video);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
 
         return this.videoService.getVideoById(id);
     }
 
     @GetMapping(value = "/data/{id}")
-    public ApiResponse<VideoResponseDTO> getVideoDataById(@PathVariable UUID id) {
+    public ApiResponse<VideoResponseDTO> getVideoDataById(@PathVariable UUID id) throws IOException {
         Video video = this.videoDao.getVideoById(id);
         if (video == null) {
             return new ApiResponse<>("Video not found", HttpStatus.NOT_FOUND);
@@ -180,6 +179,10 @@ public class VideoController {
         }
 
         if (video.getVisibility() == VideoVisibility.DELETED) {
+            return new ApiResponse<>("Video not found", HttpStatus.NOT_FOUND);
+        }
+
+        if (!video.isFullyUploaded()) {
             return new ApiResponse<>("Video not found", HttpStatus.NOT_FOUND);
         }
 
@@ -205,13 +208,36 @@ public class VideoController {
             return new ApiResponse<>("Video not found", HttpStatus.NOT_FOUND);
         }
 
-        // This isn't implemented yet as I want to delete the video and soft delete the data in the database
         if (visibility == VideoVisibility.DELETED) {
             this.videoService.deleteVideo(video);
         }
 
         video.setVisibility(visibility);
         return new ApiResponse<>(videoMapper.fromEntity(videoDao.save(video)), HttpStatus.OK);
+    }
+
+
+    @PostMapping(value = "/create")
+    public ApiResponse<?> createVideo(@RequestParam("file") MultipartFile file,
+                                      @RequestParam("chunk") int chunk,
+                                      @RequestParam("chunks") int totalChunks,
+                                      @RequestParam ("fileName") String fileName)
+            throws IOException {
+        if (file.isEmpty()) {
+            return new ApiResponse<>("No file part", HttpStatus.BAD_REQUEST);
+        }
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UUID userId = UUID.fromString(authentication.getPrincipal().toString());
+
+        try {
+            this.videoService.storeChunk(file, userId, chunk, totalChunks, fileName);
+        }
+        catch (Exception e) {
+            return new ApiResponse<>("Error uploading video", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        return new ApiResponse<>("Chunk received", HttpStatus.OK);
     }
 
 

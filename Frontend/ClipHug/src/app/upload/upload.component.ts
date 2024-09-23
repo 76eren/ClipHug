@@ -18,7 +18,8 @@ export class UploadComponent {
   file?: File;
 
   @ViewChild('fileInput') fileInput!: ElementRef;
-  private canSubmit: boolean = true;
+  public canSubmit: boolean = true;
+  public uploadProgress: number = 0;
 
   constructor(private videoService: VideoService, private toastr: ToastrService, private frameService: FrameService) {
 
@@ -70,24 +71,35 @@ export class UploadComponent {
     }
   }
 
-  onSubmit() {
-    if (!this.canSubmit) {
-      this.toastr.warning('Please wait for the previous upload to finish');
-      return;
-    }
-
-    if (this.file) {
-      this.canSubmit = false;
-      this.videoService.uploadVideo(this.file).subscribe((response) => {
-        this.toastr.success('Video uploaded successfully');
-        this.canSubmit = true;
-        },
-      (error: HttpErrorResponse) => {
+  uploadChunkRecursive(file: File, chunkSize: number, totalChunks: number, currentChunk: number) {
+    const chunk = file.slice(currentChunk * chunkSize, (currentChunk + 1) * chunkSize);
+    this.videoService.uploadChunk(file, chunk, currentChunk, totalChunks, file.name).subscribe({
+      next: (response) => {
+        this.uploadProgress = (currentChunk + 1) / totalChunks * 100;
+        if (currentChunk < totalChunks - 1) {
+          this.uploadChunkRecursive(file, chunkSize, totalChunks, currentChunk + 1);
+        } else {
+          this.toastr.success('Video uploaded successfully');
+          this.canSubmit = true;
+        }
+      },
+      error: (error: HttpErrorResponse) => {
         this.toastr.error('Failed to upload video');
         this.canSubmit = true;
-      });
-    }
+      }
+    });
   }
+
+  onSubmit() {
+    if (!this.canSubmit || !this.file) {
+      return;
+    }
+    this.canSubmit = false;
+    const chunkSize = 5 * 1024 * 1024; // 5 MB
+    const totalChunks = Math.ceil(this.file.size / chunkSize);
+    this.uploadChunkRecursive(this.file, chunkSize, totalChunks, 0);
+  }
+
 
   onPreviewClick() {
     this.fileInput.nativeElement.click();

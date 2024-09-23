@@ -1,12 +1,12 @@
 package org.example.cliphug.Model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.GenericGenerator;
 
 import java.util.Date;
 import java.util.UUID;
@@ -19,11 +19,6 @@ import java.util.UUID;
 @Table(name = "video")
 public class Video {
     @Id
-    @GeneratedValue(generator = "UUID")
-    @GenericGenerator(
-            name = "UUID",
-            strategy = "org.hibernate.id.UUIDGenerator"
-    )
     @Column(nullable = false, unique = true)
     @JsonProperty
     private UUID id; // This will be the name of the directory the video is stored in
@@ -46,6 +41,13 @@ public class Video {
     @JsonProperty
     @Column(name = "visibility")
     private VideoVisibility visibility;
+
+    // Because the video now gets uploaded in chunks if something goes wrong while uploading or the front end for some reason
+    // stops uploading the video, we need to know if the video is fully uploaded or not
+    // This way we can delete the video if it's not fully uploaded
+    @JsonIgnore
+    @Column(name = "isFullyUploaded")
+    private boolean isFullyUploaded = false;
 }
 
 
