@@ -176,6 +176,13 @@ public class VideoService {
             // Now that all the chunks are combined we can calculate the size of the video and add it to the database
             float sizeKB = (float) Files.size(outputFile) / 1024;
             video.setSize(sizeKB);
+
+            String fileType = Files.probeContentType(outputFile);
+            if (!"video/mp4".equals(fileType)) {
+                Files.delete(outputFile);
+                throw new IllegalArgumentException("Uploaded file is not a mp4 video");
+            }
+
             video.setFullyUploaded(true); // We can now mark the video as fully uploaded
             this.videoDao.save(video);
 

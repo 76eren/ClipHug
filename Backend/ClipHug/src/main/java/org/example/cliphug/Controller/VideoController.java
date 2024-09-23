@@ -230,7 +230,13 @@ public class VideoController {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UUID userId = UUID.fromString(authentication.getPrincipal().toString());
 
-        this.videoService.storeChunk(file, userId, chunk, totalChunks, fileName);
+        try {
+            this.videoService.storeChunk(file, userId, chunk, totalChunks, fileName);
+        }
+        catch (Exception e) {
+            return new ApiResponse<>("Error uploading video", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
         return new ApiResponse<>("Chunk received", HttpStatus.OK);
     }
 
