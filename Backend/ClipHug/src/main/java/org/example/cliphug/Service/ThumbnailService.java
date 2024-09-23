@@ -6,6 +6,8 @@ import org.bytedeco.javacv.FFmpegFrameGrabber;
 import org.bytedeco.javacv.Frame;
 import org.bytedeco.javacv.Java2DFrameConverter;
 import org.example.cliphug.Model.Video;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import javax.imageio.ImageIO;
@@ -14,6 +16,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -43,11 +48,28 @@ public class ThumbnailService {
     }
 
     public byte[] generateThumbnail(Video video) {
-        // This is a heavy operation for the server, therefore I decided to store the thumbnails instead as an image
+        String fileName = "";
         Java2DFrameConverter converter = null;
-        try (FFmpegFrameGrabber frameGrabber = new FFmpegFrameGrabber("videos/" + video.getId() + "/" + video.getFileName());
+        Path videoDir = Paths.get("videos/" + video.getId()).normalize();
+
+        try {
+            Optional<Path> mp4File = Files.list(videoDir)
+                    .filter(path -> path.toString().endsWith(".mp4"))
+                    .findFirst();
+
+            if (!mp4File.isPresent()) {
+                return null;
+            }
+
+            fileName = mp4File.get().toString();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        try (FFmpegFrameGrabber frameGrabber = new FFmpegFrameGrabber(fileName);
              ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
 
+            frameGrabber.setFormat("mp4");
             frameGrabber.start();
 
             Frame frame = frameGrabber.grabImage();
@@ -72,6 +94,7 @@ public class ThumbnailService {
 
         return null;
     }
+
 
     public void storeThumbnail(Video video, byte[] thumbnail) {
         try {

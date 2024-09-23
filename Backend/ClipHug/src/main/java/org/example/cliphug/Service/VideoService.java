@@ -8,8 +8,6 @@ import org.example.cliphug.Dao.VideoDao;
 import org.example.cliphug.Model.User;
 import org.example.cliphug.Model.Video;
 import org.example.cliphug.Model.VideoVisibility;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -51,8 +49,22 @@ public class VideoService {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
             }
 
-            Path videoPath = Paths.get("videos/"+video.getId()).resolve(video.getFileName()).normalize();
-            if (!Files.exists(videoPath) || !Files.isReadable(videoPath)) {
+            Path videoDir = Paths.get("videos/" + video.getId()).normalize();
+            if (!Files.exists(videoDir) || !Files.isDirectory(videoDir)) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            }
+
+            // Find the first .mp4 file in the directory
+            Optional<Path> mp4File = Files.list(videoDir)
+                    .filter(path -> path.toString().endsWith(".mp4"))
+                    .findFirst();
+
+            if (!mp4File.isPresent()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            }
+
+            Path videoPath = mp4File.get();
+            if (!Files.isReadable(videoPath)) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
             }
 
@@ -74,19 +86,19 @@ public class VideoService {
         }
     }
 
-    public Video createVideo(Path video, UUID userId) {
+
+    public Video createVideo(String video, UUID userId) {
         Optional<User> author = this.userDao.findById(userId);
         if (author.isEmpty()) {
             throw new IllegalArgumentException("User not found");
         }
 
-        String fileName = video.getFileName().toString();
         Date currentDate = new Date();
         UUID videoId = UUID.randomUUID();
 
         Video vid = Video.builder()
                 .id(videoId)
-                .fileName(fileName)
+                .fileName(video)
                 .author(author.get())
                 .size(-1) // This will be calculated later as the video is uploaded in chunks
                 .visibility(VideoVisibility.PUBLIC) // By default, the videos are public
@@ -120,7 +132,7 @@ public class VideoService {
         // A video object only has a reference to all the metadata therefore we can store it at the first chunk
         Video video;
         if (chunk == 0) {
-            video = createVideo(Paths.get(fileName), userId);
+            video = createVideo(fileName, userId);
         }
         else {
             // Since we don't have the video id we cannot retrieve it for each chunk eitherH
@@ -140,7 +152,7 @@ public class VideoService {
         fileChunk.transferTo(chunkFile);
 
         if (areAllChunksUploaded(tempDir, totalChunks)) {
-            combineChunks(tempDir, totalChunks, fileName, video);
+            combineChunks(tempDir, totalChunks, video);
         }
     }
 
@@ -149,8 +161,8 @@ public class VideoService {
         return count == totalChunks;
     }
 
-    private void combineChunks(Path directory, int totalChunks, String fileName, Video video) throws IOException {
-        Path outputFile = directory.resolve(fileName);
+    private void combineChunks(Path directory, int totalChunks, Video video) throws IOException {
+        Path outputFile = directory.resolve("video.mp4");
         try (OutputStream out = Files.newOutputStream(outputFile)) {
             for (int i = 0; i < totalChunks; i++) {
                 Path chunkFile = directory.resolve("chunk_" + i + ".part");
